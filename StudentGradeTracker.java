@@ -1,77 +1,122 @@
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class StudentGradeTracker {
+public class StudentsGradeTracker {
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         ArrayList<String> studentNames = new ArrayList<>();
-        ArrayList<Double> studentGrades = new ArrayList<>();
+        ArrayList<Double> studentMarks = new ArrayList<>();
 
-        System.out.println("--- Student Grade Tracker ---");
-        boolean running = true;
-        while (running) {
-            System.out.println("\n1. Add Student and Grade");
+        while (true) {
+            System.out.println("\n--- Student Grade Tracker ---");
+            System.out.println("1. Add Student and Mark");
             System.out.println("2. Show Summary Report");
             System.out.println("3. Exit");
             System.out.print("Choose an option: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // consume newline
 
-            switch (choice) {
+            String optionLine = scanner.nextLine().trim();
+            if (optionLine.isEmpty()) {
+                System.out.println("Please enter a valid option.");
+                continue;
+            }
+
+            int option;
+            try {
+                option = Integer.parseInt(optionLine);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number (1-3).");
+                continue;
+            }
+
+            switch (option) {
                 case 1:
                     System.out.print("Enter student name: ");
-                    String name = scanner.nextLine();
-                    System.out.print("Enter student grade: ");
-                    double grade = scanner.nextDouble();
-                    scanner.nextLine(); // consume newline
+                    String name = scanner.nextLine().trim();
+                    if (name.isEmpty()) {
+                        System.out.println("Name cannot be empty. Aborting add.");
+                        break;
+                    }
+
+                    System.out.print("Enter student mark (0 - 100): ");
+                    String markLine = scanner.nextLine().trim();
+                    double mark;
+                    try {
+                        mark = Double.parseDouble(markLine);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid mark. Please enter a numeric value.");
+                        break;
+                    }
+
+                    if (mark < 0 || mark > 100) {
+                        System.out.println("Mark must be between 0 and 100.");
+                        break;
+                    }
+
                     studentNames.add(name);
-                    studentGrades.add(grade);
-                    System.out.println("Student and grade added.");
+                    studentMarks.add(mark);
+                    System.out.println("Added: " + name + " -> " + mark);
                     break;
+
                 case 2:
-                    showSummary(studentNames, studentGrades);
+                    if (studentNames.isEmpty()) {
+                        System.out.println("No students added yet.");
+                        break;
+                    }
+
+                    int count = studentNames.size();
+                    double sum = 0.0;
+                    double highest = Double.NEGATIVE_INFINITY;
+                    double lowest = Double.POSITIVE_INFINITY;
+                    int highestIndex = -1;
+                    int lowestIndex = -1;
+
+                    for (int i = 0; i < count; i++) {
+                        double m = studentMarks.get(i);
+                        sum += m;
+                        if (m > highest) {
+                            highest = m;
+                            highestIndex = i;
+                        }
+                        if (m < lowest) {
+                            lowest = m;
+                            lowestIndex = i;
+                        }
+                    }
+
+                    double average = sum / count;
+
+                    System.out.println("\n--- Summary Report ---");
+                    System.out.println("Total students: " + count);
+                    System.out.printf("Average mark: %.2f%n", average);
+                    System.out.printf("Highest mark: %.2f ( %s )%n", highest, studentNames.get(highestIndex));
+                    System.out.printf("Lowest mark:  %.2f ( %s )%n", lowest, studentNames.get(lowestIndex));
+
+                    System.out.println("\n--- Student Marks & Grades ---");
+                    for (int i = 0; i < count; i++) {
+                        double m = studentMarks.get(i);
+                        String grade = convertToGrade(m);
+                        System.out.printf("%d. %s : %.2f -> Grade %s%n", i + 1, studentNames.get(i), m, grade);
+                    }
                     break;
+
                 case 3:
-                    running = false;
-                    System.out.println("Exiting Student Grade Tracker. Goodbye!");
-                    break;
+                    System.out.println("Exiting. Goodbye!");
+                    scanner.close();
+                    return;
+
                 default:
-                    System.out.println("Invalid option. Please try again.");
+                    System.out.println("Please choose a valid option (1-3).");
             }
         }
-        scanner.close();
     }
 
-    private static void showSummary(ArrayList<String> names, ArrayList<Double> grades) {
-        if (names.isEmpty()) {
-            System.out.println("No student data available.");
-            return;
-        }
-        double sum = 0;
-        double highest = grades.get(0);
-        double lowest = grades.get(0);
-        int highestIndex = 0;
-        int lowestIndex = 0;
-        for (int i = 0; i < grades.size(); i++) {
-            double grade = grades.get(i);
-            sum += grade;
-            if (grade > highest) {
-                highest = grade;
-                highestIndex = i;
-            }
-            if (grade < lowest) {
-                lowest = grade;
-                lowestIndex = i;
-            }
-        }
-        double average = sum / grades.size();
-        System.out.println("\n--- Summary Report ---");
-        System.out.printf("Average Score: %.2f\n", average);
-        System.out.printf("Highest Score: %.2f (%s)\n", highest, names.get(highestIndex));
-        System.out.printf("Lowest Score: %.2f (%s)\n", lowest, names.get(lowestIndex));
-        System.out.println("\nAll Students:");
-        for (int i = 0; i < names.size(); i++) {
-            System.out.printf("%d. %s - %.2f\n", i + 1, names.get(i), grades.get(i));
-        }
+    private static String convertToGrade(double mark) {
+        if (mark >= 90) return "A";
+        if (mark >= 80) return "B";
+        if (mark >= 70) return "C";
+        if (mark >= 60) return "D";
+        if (mark >= 50) return "E";
+        return "F";
     }
-} 
+}
